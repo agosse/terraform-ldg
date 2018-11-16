@@ -18,15 +18,6 @@ resource "aws_rds_cluster" "default" {
   }
 }
 
-#resource "aws_rds_cluster_instance" "cluster_instances" {
-  #count                = 2
-  #identifier           = "aurora-cluster-${count.index}"
-  #cluster_identifier   = "${aws_rds_cluster.default.id}"
-  #instance_class       = "db.r4.large"
-  #publicly_accessible  = false
-  #db_subnet_group_name = "${aws_db_subnet_group.default.name}"
-#}
-
 resource "aws_db_subnet_group" "default" {
   subnet_ids = ["${aws_subnet.subnet.*.id}"]
 }
