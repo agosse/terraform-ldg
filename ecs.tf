@@ -41,3 +41,31 @@ resource "aws_ecs_task_definition" "api" {
   family = "service"
   container_definitions = "${data.template_file.container_definition.rendered}"
 }
+
+data "aws_iam_role" "ecs_service_role" {
+  name = "ecsServiceRole"
+}
+
+resource "aws_appautoscaling_target" "ecs" {
+  max_capacity = 6
+  min_capacity = 1
+  resource_id  = "service/cluster/api"
+  role_arn     = "${data.aws_iam_role.ecs_service_role.arn}"
+  scalable_dimension = "ecs:service:DesiredCount"
+  service_namespace = "ecs"
+}
+
+resource "aws_appautoscaling_policy" "ecs_policy" {
+  name               = "CPU"
+  policy_type        = "TargetTrackingScaling"
+  resource_id        = "service/cluster/api"
+  scalable_dimension = "ecs:service:DesiredCount"
+  service_namespace = "ecs"
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageCPUUtilization"
+    }
+    target_value = 50
+  }
+  depends_on = ["aws_appautoscaling_target.ecs"]
+}
